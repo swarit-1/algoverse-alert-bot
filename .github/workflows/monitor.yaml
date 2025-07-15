@@ -3,7 +3,7 @@ name: Monitor Algoverse
 on:
   schedule:
     - cron: "*/5 * * * *"  # Every 5 minutes
-  workflow_dispatch:       # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   run-monitor:
@@ -23,12 +23,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Restore seen_ids.json (if exists)
-        uses: actions/download-artifact@v4
-        with:
-          name: seen-data
-          path: .
-          if-no-files-found: ignore
+      - name: Attempt to restore seen_ids.json
+        continue-on-error: true
+        run: |
+          mkdir -p restore
+          cd restore
+          gh run download --name seen-data || echo "No artifact yet"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move seen_ids.json if exists
+        run: |
+          if [ -f restore/seen_ids.json ]; then
+            mv restore/seen_ids.json seen_ids.json
+          fi
 
       - name: Run monitoring script
         env:
@@ -39,7 +47,7 @@ jobs:
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
         run: python main.py
 
-      - name: Upload updated seen_ids.json
+      - name: Upload seen_ids.json
         uses: actions/upload-artifact@v4
         with:
           name: seen-data
