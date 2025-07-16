@@ -1,20 +1,40 @@
-import os
 import requests
+import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 load_dotenv()
 
 SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK")
 
-def send_slack_alert(text, url):
-    if not SLACK_WEBHOOK:
-        print("Slack webhook not set!")
+def send_daily_summary(reddit_posts, twitter_posts):
+    date_str = (datetime.now() - timedelta(days=1)).strftime("%B %d, %Y")
+    header = f":loudspeaker: *Algoverse Mentions* - {date_str}"
+
+    total_mentions = len(reddit_posts) + len(twitter_posts)
+    if total_mentions == 0:
+        message = f"{header}\nNo new mentions of 'Algoverse' found yesterday."
+        requests.post(SLACK_WEBHOOK, json={"text": message})
         return
 
-    message = f"📢 *New Reddit mention of Algoverse!*\n*Title:* {text}\n🔗 {url}"
-    payload = {"text": message}
+    counts = f"Reddit ({len(reddit_posts)}) | X/Twitter ({len(twitter_posts)})"
 
-    response = requests.post(SLACK_WEBHOOK, json=payload)
-    
-    if response.status_code != 200:
-        print("Failed to send Slack message:", response.text)
+    lines = []
+
+    for post in reddit_posts:
+        line = f"- r/{post['subreddit']}: “{post['title']}” <{post['url']}>"
+        lines.append(line)
+
+    for tweet in twitter_posts:
+        text = post_preview(tweet['text'])
+        line = f"- X: <{tweet['url']}> {text}"
+        lines.append(line)
+
+    message = f"{header}\n{counts}\n" + "\n".join(lines)
+
+    requests.post(SLACK_WEBHOOK, json={"text": message})
+
+
+def post_preview(text, limit=80):
+    text = text.replace("\n", " ")
+    return text[:limit] + ("..." if len(text) > limit else "")
