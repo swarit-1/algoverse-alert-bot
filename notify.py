@@ -20,15 +20,16 @@ def send_daily_summary(reddit_posts, twitter_posts):
     counts = f"Reddit ({len(reddit_posts)}) | X/Twitter ({len(twitter_posts)})"
 
     lines = []
-    
+
     for post in reddit_posts:
-        line = f"- [{post['title']} (r/{post['subreddit']})]({post['url']})"
+        line = f"- <{post['url']}|r/{post['subreddit']}: “{post['title']}”>"
         lines.append(line)
 
     for tweet in twitter_posts:
         text = post_preview(tweet['text'])
-        line = f"- [X: {text}]({tweet['url']})"
+        line = f"- <{tweet['url']}|X: {text}>"
         lines.append(line)
+
 
     message = f"{header}\n{counts}\n" + "\n".join(lines)
 
