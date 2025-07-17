@@ -10,7 +10,11 @@ except Exception as e:
     twitter_results = []
 
 # Always fetch Reddit
-reddit_results = check_reddit_for_algoverse()
+try:
+    reddit_results = check_reddit_for_algoverse()
+except Exception as e:
+    print(f"⚠️ Reddit fetch failed: {e}")
+    reddit_results = []
 
 # Send final Slack message
 send_daily_summary(reddit_results, twitter_results)
