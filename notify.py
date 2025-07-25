@@ -1,6 +1,7 @@
 import os
 import requests
 from datetime import datetime
+import pytz  # Added for timezone support
 
 SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK_URL", "").strip()
 
@@ -9,8 +10,10 @@ def send_daily_summary(reddit_posts, twitter_posts):
         print("⚠️ Invalid SLACK_WEBHOOK:", repr(SLACK_WEBHOOK))
         return
 
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    message_lines = [f"*Algoverse Alerts — {now} PT*"]
+    # Changed to use US Eastern Time
+    eastern = pytz.timezone("US/Eastern")
+    now = datetime.now(eastern).strftime("%Y-%m-%d %H:%M")
+    message_lines = [f"*Algoverse Alerts — {now} ET*"]  # Updated PT -> ET
 
     if reddit_posts:
         message_lines.append("\n*Reddit Mentions:*")
