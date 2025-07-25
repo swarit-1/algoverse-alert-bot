@@ -1,41 +1,35 @@
-import requests
 import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
+import requests
+from datetime import datetime
 
-load_dotenv()
-
-SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK")
+SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK", "").strip()
 
 def send_daily_summary(reddit_posts, twitter_posts):
-    date_str = (datetime.now() - timedelta(days=1)).strftime("%B %d, %Y")
-    header = f":loudspeaker: *Algoverse Mentions* - {date_str}"
-
-    total_mentions = len(reddit_posts) + len(twitter_posts)
-    if total_mentions == 0:
-        message = f"{header}\nNo new mentions of 'Algoverse' found yesterday."
-        requests.post(SLACK_WEBHOOK, json={"text": message})
+    if not SLACK_WEBHOOK or not SLACK_WEBHOOK.startswith("https://hooks.slack.com/"):
+        print("⚠️ Invalid SLACK_WEBHOOK:", repr(SLACK_WEBHOOK))
         return
 
-    counts = f"Reddit ({len(reddit_posts)}) | X/Twitter ({len(twitter_posts)})"
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    message_lines = [f"*Algoverse Alerts — {now} PT*"]
 
-    lines = []
+    if reddit_posts:
+        message_lines.append("\n*Reddit Mentions:*")
+        for post in reddit_posts:
+            message_lines.append(f"- <{post['permalink']}|{post['title']}>")
+    else:
+        message_lines.append("\nNo Reddit mentions found.")
 
-    for post in reddit_posts:
-        line = f"- <{post['url']}|r/{post['subreddit']}: “{post['title']}”>"
-        lines.append(line)
+    if twitter_posts:
+        message_lines.append("\n*Twitter Mentions:*")
+        for tweet in twitter_posts:
+            message_lines.append(f"- {tweet}")
+    else:
+        message_lines.append("\nNo Twitter mentions found.")
 
-    for tweet in twitter_posts:
-        text = post_preview(tweet['text'])
-        line = f"- <{tweet['url']}|X: {text}>"
-        lines.append(line)
-
-
-    message = f"{header}\n{counts}\n" + "\n".join(lines)
-
-    requests.post(SLACK_WEBHOOK, json={"text": message})
-
-
-def post_preview(text, limit=80):
-    text = text.replace("\n", " ")
-    return text[:limit] + ("..." if len(text) > limit else "")
+    message = "\n".join(message_lines)
+    
+    try:
+        response = requests.post(SLACK_WEBHOOK, json={"text": message})
+        print(f"✅ Slack message sent: {response.status_code}")
+    except Exception as e:
+        print(f"⚠️ Error sending Slack message: {e}")
