@@ -10,7 +10,7 @@ A minimal Python social media scraper which searches for "Algoverse" mentions on
 
 ## Tech Stack
 
-- Python 3.x
+- Python 3.12.6
 - Libraries: requests, praw, slack_sdk, etc.
 
 ## Setup and Usage
