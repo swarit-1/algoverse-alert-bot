@@ -2,7 +2,7 @@ import os
 import requests
 from datetime import datetime
 
-SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK", "").strip()
+SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK_URL", "").strip()
 
 def send_daily_summary(reddit_posts, twitter_posts):
     if not SLACK_WEBHOOK or not SLACK_WEBHOOK.startswith("https://hooks.slack.com/"):

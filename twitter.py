@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 load_dotenv()
 
-client = tweepy.Client(bearer_token=os.getenv("TWITTER_BEARER"))
+client = tweepy.Client(bearer_token=os.getenv("TWITTER_BEARER_TOKEN"))
 
 def check_twitter_for_algoverse(limit=25):
     yesterday = datetime.now(timezone.utc) - timedelta(days=1)

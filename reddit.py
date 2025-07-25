@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 load_dotenv()
 
-ua = os.getenv("REDDIT_AGENT", "")
+ua = os.getenv("REDDIT_USER_AGENT", "")
 safe_ua = ua.strip()
 print(f"▶ Reddit user agent: {repr(safe_ua)}")
 

@@ -6,10 +6,6 @@ from notify import send_daily_summary
 
 load_dotenv()
 
-print("🔍 DEBUG ENV")
-for var in ["REDDIT_AGENT", "REDDIT_CLIENT_ID", "REDDIT_SECRET", "TWITTER_BEARER", "SLACK_WEBHOOK"]:
-    print(f"{var} = {repr(os.getenv(var))}")
-
 # Twitter fetch with safe handling
 try:
     from twitter import check_twitter_for_algoverse
