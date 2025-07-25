@@ -1,23 +1,35 @@
 import os
 import requests
 from datetime import datetime
-from pytz import timezone
 
-SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK")
+SLACK_WEBHOOK = os.getenv("SLACK_WEBHOOK", "").strip()
 
-def format_item(item):
-    return f"- <{item['url']}|{item['title'].strip()}> ({item['source']}, {item['created'].astimezone(timezone('America/Los_Angeles')).strftime('%b %d, %I:%M %p')})"
+def send_daily_summary(reddit_posts, twitter_posts):
+    if not SLACK_WEBHOOK or not SLACK_WEBHOOK.startswith("https://hooks.slack.com/"):
+        print("⚠️ Invalid SLACK_WEBHOOK:", repr(SLACK_WEBHOOK))
+        return
 
-def send_daily_summary(reddit_results, twitter_results):
-    all_results = reddit_results + twitter_results
-    all_results.sort(key=lambda x: x["created"], reverse=True)
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    message_lines = [f"*Algoverse Alerts — {now} PT*"]
 
-    if not all_results:
-        message = "No Algoverse mentions found in the past 24 hours."
+    if reddit_posts:
+        message_lines.append("\n*Reddit Mentions:*")
+        for post in reddit_posts:
+            message_lines.append(f"- <{post['permalink']}|{post['title']}>")
     else:
-        message = "*Daily Algoverse Keyword Mentions Summary:*\n\n"
-        message += "\n".join(format_item(item) for item in all_results)
+        message_lines.append("\nNo Reddit mentions found.")
 
-    response = requests.post(SLACK_WEBHOOK, json={"text": message})
-    if not response.ok:
-        raise Exception(f"Slack webhook failed: {response.status_code} - {response.text}")
+    if twitter_posts:
+        message_lines.append("\n*Twitter Mentions:*")
+        for tweet in twitter_posts:
+            message_lines.append(f"- {tweet}")
+    else:
+        message_lines.append("\nNo Twitter mentions found.")
+
+    message = "\n".join(message_lines)
+    
+    try:
+        response = requests.post(SLACK_WEBHOOK, json={"text": message})
+        print(f"✅ Slack message sent: {response.status_code}")
+    except Exception as e:
+        print(f"⚠️ Error sending Slack message: {e}")
