@@ -31,8 +31,3 @@ A minimal Python social media scraper which searches for "Algoverse" mentions on
 
 4. Start the bot:
    python main.py
-
-## Known Issues
-
-- Automation (e.g., scheduled execution or uptime checking) is not yet in place.
-- Twitter API can return 401 Unauthorized if credentials are absent or invalid.
